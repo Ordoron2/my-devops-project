@@ -4,7 +4,7 @@ pipeline {
     environment {
         DOCKER_USER = 'ordoron'
         IMAGE_NAME = 'my-flask-app'
-        PROD_IP = 3.120.209.175
+        PROD_IP = '3.120.209.175'
     }
 
     stages {
