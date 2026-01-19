@@ -1,29 +1,33 @@
 pipeline {
     agent any
     
+    environment {
+        DOCKER_USER = 'ordoron'
+        IMAGE_NAME = 'my-flask-app'
+        PROD_IP = 3.120.209.175
+    }
+
     stages {
         stage('Checkout') {
             steps {
                 checkout scm
             }
         }
-        
-        stage('Build Docker Image') {
+
+        stage('Build & Push') {
             steps {
-                sh 'docker build -t my-python-app:latest .'
+                withCredentials([usernamePassword(credentialsId: 'docker-hub-creds', passwordVariable: 'PASS', usernameVariable: 'USER')]) {
+                    sh "docker build -t ${DOCKER_USER}/${IMAGE_NAME}:latest ."
+                    sh "echo \$PASS | docker login -u \$USER --password-stdin"
+                    sh "docker push ${DOCKER_USER}/${IMAGE_NAME}:latest"
+                }
             }
         }
-        
-        stage('Run Container') {
+
+        stage('Deploy to Prod') {
             steps {
-                script {
-                    sh 'docker rm -f running-app || true'
-                    sh 'docker run -d \
-                        -p 5001:5000 \
-                        --name running-app \
-                        --user root \
-                        -v /var/run/docker.sock:/var/run/docker.sock \
-                        my-python-app:latest'
+                sshagent(['prod-ssh-key']) {
+                    sh "ssh -o StrictHostKeyChecking=no ubuntu@${PROD_IP} 'cd ~/prod-deployment && docker compose pull && docker compose up -d'"
                 }
             }
         }
