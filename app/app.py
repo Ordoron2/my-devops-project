@@ -16,14 +16,12 @@ def index():
     if not client:
         return "Docker is not connected. Make sure /var/run/docker.sock is mounted.", 500
     
- 
     images = client.images.list()
     return render_template('index.html', images=images)
 
 @app.route('/delete/<image_id>')
 def delete_image(image_id):
     try:
-    
         client.images.remove(image=image_id, force=True)
         return redirect(url_for('index'))
     except Exception as e:
@@ -32,6 +30,10 @@ def delete_image(image_id):
 @app.route('/health')
 def health():
     return jsonify({"status": "healthy", "docker_connected": client is not None}), 200
+
+@app.route('/metrics')
+def metrics_endpoint():
+    return metrics.export()
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5000)
