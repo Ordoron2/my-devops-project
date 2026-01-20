@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  app:
+    image: ordoron/my-flask-app:latest
+    ports:
+      - "5000:5000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    user: root
+    restart: always
+
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: node-exporter
+    ports:
+      - "9100:9100"
+    restart: always
